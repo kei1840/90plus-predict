@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 type Pick = { id: number; name: string; finalSpain: number; finalArgentina: number; bronzeFrance: number; bronzeEngland: number; champion: string; bonus: string; createdAt: string };
 type Results = { finalSpain: number | null; finalArgentina: number | null; bronzeFrance: number | null; bronzeEngland: number | null; champion: string; bonus: string };
-type State = { picks: Pick[]; results: Results };
+type State = { picks: Pick[]; results: Results; official?: { bronze:string; final:string } };
 
 const initialResults: Results = { finalSpain: null, finalArgentina: null, bronzeFrance: null, bronzeEngland: null, champion: "", bonus: "" };
 const emptyForm = { name: "", finalSpain: 2, finalArgentina: 1, bronzeFrance: 2, bronzeEngland: 1, champion: "スペイン", bonus: "" };
@@ -38,35 +38,29 @@ function MatchInput({ title, date, left, right, flagL, flagR, a, b, onA, onB }: 
 
 export default function Home() {
   const [data,setData] = useState<State>({picks:[],results:initialResults});
-  const [form,setForm] = useState(emptyForm); const [admin,setAdmin] = useState(false); const [busy,setBusy]=useState(false); const [message,setMessage]=useState("");
+  const [form,setForm] = useState(emptyForm); const [busy,setBusy]=useState(false); const [message,setMessage]=useState("");
   const load = async () => { const res=await fetch("/api/game",{cache:"no-store"}); if(res.ok) setData(await res.json()); };
   useEffect(()=>{ load(); const t=setInterval(load,30000); return()=>clearInterval(t); },[]);
   const ranked=useMemo(()=>data.picks.map(p=>({...p,...scorePick(p,data.results)})).sort((a,b)=>b.score-a.score||a.createdAt.localeCompare(b.createdAt)),[data]);
   const savePick=async(e:React.FormEvent)=>{e.preventDefault(); if(!form.name.trim()) return; setBusy(true); const res=await fetch("/api/game",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({type:"pick",...form})}); setBusy(false); if(res.ok){setMessage("予想を登録しました！"); setForm({...emptyForm,name:""}); load();} else setMessage("登録できませんでした。もう一度お試しください。");};
-  const saveResults=async()=>{setBusy(true); await fetch("/api/game",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({type:"results",...data.results})}); setBusy(false); setMessage("試合結果を更新しました"); load();};
   return <main>
-    <nav><a className="brand" href="#top"><span>90+</span> PREDICT</a><div><a href="#ranking">ランキング</a><a href="#rules">ルール</a><button className="admin-link" onClick={()=>setAdmin(!admin)}>{admin?"予想に戻る":"結果を入力"}</button></div></nav>
+    <nav><a className="brand" href="#top"><span>90+</span> PREDICT</a><div><a href="#ranking">ランキング</a><a href="#rules">ルール</a><span className="auto-result">● 結果は自動取得</span></div></nav>
     <header id="top"><div className="eyebrow"><span></span> FIFA WORLD CUP 2026 · FINAL WEEKEND</div><h1>ラスト2試合を、<br/><em>みんなで予想しよう。</em></h1><p>決勝と3位決定戦のスコアを当てて、仲間とランキング勝負。<br/>名前だけで参加できます。</p><div className="live"><i></i> 参加者 <b>{data.picks.length}人</b><span>自動更新</span></div></header>
 
     <div className="layout">
       <section className="panel prediction-panel">
-        <div className="section-title"><span>01</span><div><h2>{admin?"試合結果を入力":"あなたの予想"}</h2><p>{admin?"試合終了後に実際のスコアを登録してください":"90分＋延長終了時点のスコアを入力"}</p></div></div>
-        {admin ? <div className="form-stack">
-          <MatchInput title="3位決定戦" date="7/18 SAT · MIAMI" left="フランス" right="イングランド" flagL="🇫🇷" flagR="🏴" a={data.results.bronzeFrance??0} b={data.results.bronzeEngland??0} onA={n=>setData({...data,results:{...data.results,bronzeFrance:n}})} onB={n=>setData({...data,results:{...data.results,bronzeEngland:n}})}/>
-          <MatchInput title="決勝" date="7/19 SUN · NEW YORK" left="スペイン" right="アルゼンチン" flagL="🇪🇸" flagR="🇦🇷" a={data.results.finalSpain??0} b={data.results.finalArgentina??0} onA={n=>setData({...data,results:{...data.results,finalSpain:n}})} onB={n=>setData({...data,results:{...data.results,finalArgentina:n}})}/>
-          <label className="field"><span>優勝国</span><select value={data.results.champion} onChange={e=>setData({...data,results:{...data.results,champion:e.target.value}})}><option value="">未確定</option><option>スペイン</option><option>アルゼンチン</option></select></label>
-          <label className="field"><span>決勝の先制選手（ボーナス）</span><input value={data.results.bonus} onChange={e=>setData({...data,results:{...data.results,bonus:e.target.value}})} placeholder="選手名"/></label>
-          <button className="primary" onClick={saveResults} disabled={busy}>結果を保存する <b>→</b></button>
-        </div> : <form onSubmit={savePick} className="form-stack">
+        <div className="section-title"><span>01</span><div><h2>あなたの予想</h2><p>90分＋延長終了時点のスコアを入力</p></div></div>
+        <form onSubmit={savePick} className="form-stack">
           <MatchInput title="3位決定戦" date="7/18 SAT · MIAMI" left="フランス" right="イングランド" flagL="🇫🇷" flagR="🏴" a={form.bronzeFrance} b={form.bronzeEngland} onA={n=>setForm({...form,bronzeFrance:n})} onB={n=>setForm({...form,bronzeEngland:n})}/>
           <MatchInput title="決勝" date="7/19 SUN · NEW YORK" left="スペイン" right="アルゼンチン" flagL="🇪🇸" flagR="🇦🇷" a={form.finalSpain} b={form.finalArgentina} onA={n=>setForm({...form,finalSpain:n})} onB={n=>setForm({...form,finalArgentina:n})}/>
           <div className="two"><label className="field"><span>優勝国</span><select value={form.champion} onChange={e=>setForm({...form,champion:e.target.value})}><option>スペイン</option><option>アルゼンチン</option></select></label><label className="field"><span>決勝の先制選手 <small>+3</small></span><input value={form.bonus} onChange={e=>setForm({...form,bonus:e.target.value})} placeholder="例：ヤマル"/></label></div>
           <label className="field name"><span>あなたの名前</span><input required maxLength={30} value={form.name} onChange={e=>setForm({...form,name:e.target.value})} placeholder="ニックネームでもOK"/></label>
           <button className="primary" disabled={busy}>{busy?"登録中…":"この予想でエントリー"} <b>→</b></button>{message&&<p className="message">{message}</p>}
-        </form>}
+        </form>
       </section>
 
-      <aside className="panel ranking" id="ranking"><div className="section-title"><span>02</span><div><h2>ライブランキング</h2><p>全員の予想とポイント内訳を公開中</p></div></div>
+      <aside className="panel ranking" id="ranking"><div className="section-title"><span>02</span><div><h2>ライブランキング</h2><p>試合終了後、公式データから自動採点</p></div></div>
+        <div className="official-status"><span>3位戦：{data.official?.bronze||"確認中"}</span><span>決勝：{data.official?.final||"確認中"}</span></div>
         <div className="score-guide"><b>配点</b><span>決勝スコア <strong>10</strong></span><span>決勝勝敗 <strong>5</strong></span><span>3位戦スコア <strong>8</strong></span><span>3位戦勝敗 <strong>4</strong></span><span>優勝国 <strong>5</strong></span><span>先制選手 <strong>3</strong></span></div>
         <div className="rank-list">{ranked.length===0?<div className="empty"><b>一番乗りしよう</b><p>予想を登録すると、ここにランキングが表示されます。</p></div>:ranked.map((p,i)=><article key={p.id} className={i<3?`top top-${i+1}`:""}>
           <div className="rank-head"><div className="place">{i+1}</div><div className="avatar">{p.name.slice(0,1)}</div><div className="person"><b>{p.name}</b><small>{i===0?"現在トップ":"エントリー済み"}</small></div><strong>{p.score}<small> pts</small></strong></div>
