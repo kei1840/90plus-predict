@@ -64,7 +64,7 @@ export default function Home() {
         <div className="score-guide"><b>配点</b><span>決勝スコア <strong>10</strong></span><span>決勝勝敗 <strong>5</strong></span><span>3位戦スコア <strong>8</strong></span><span>3位戦勝敗 <strong>4</strong></span><span>優勝国 <strong>5</strong></span><span>先制選手 <strong>3</strong></span></div>
         <div className="rank-list">{ranked.length===0?<div className="empty"><b>一番乗りしよう</b><p>予想を登録すると、ここにランキングが表示されます。</p></div>:ranked.map((p,i)=><article key={p.id} className={i<3?`top top-${i+1}`:""}>
           <div className="rank-head"><div className="place">{i+1}</div><div className="avatar">{p.name.slice(0,1)}</div><div className="person"><b>{p.name}</b><small>{i===0?"現在トップ":"エントリー済み"}</small></div><strong>{p.score}<small> pts</small></strong></div>
-          <div className="pick-grid"><div><small>決勝</small><b>🇪🇸 {p.finalSpain} — {p.finalArgentina} 🇦🇷</b></div><div><small>3位決定戦</small><b>🇫🇷 {p.bronzeFrance} — {p.bronzeEngland} 🏴</b></div><div><small>優勝国</small><b>{p.champion||"未入力"}</b></div><div><small>先制選手</small><b>{p.bonus||"予想なし"}</b></div></div>
+          <div className="pick-grid"><div><small>決勝 · スコア予想</small><b>🇪🇸 {p.finalSpain} — {p.finalArgentina} 🇦🇷</b></div><div><small>3位決定戦 · スコア予想</small><b>🇫🇷 {p.bronzeFrance} — {p.bronzeEngland} 🏴</b></div><div><small>決勝 · 優勝国予想</small><b>{p.champion||"未入力"}</b></div><div><small>決勝 · 先制選手予想</small><b>{p.bonus||"予想なし"}</b></div></div>
           <div className="point-detail">{p.details.length?p.details.map(d=><span key={d}>✓ {d}</span>):<span>試合結果の入力後にポイントが入ります</span>}</div>
         </article>)}</div>
         <p className="refresh"><i></i> 30秒ごとに自動更新</p>
