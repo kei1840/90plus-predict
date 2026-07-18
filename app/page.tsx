@@ -60,7 +60,6 @@ export default function Home() {
       </section>
 
       <aside className="panel ranking" id="ranking"><div className="section-title"><span>02</span><div><h2>ライブランキング</h2><p>試合終了後、公式データから自動採点</p></div></div>
-        <div className="official-status"><span>3位戦：{data.official?.bronze||"確認中"}</span><span>決勝：{data.official?.final||"確認中"}</span></div>
         <div className="score-guide"><b>配点</b><span>決勝スコア <strong>10</strong></span><span>決勝勝敗 <strong>5</strong></span><span>3位戦スコア <strong>8</strong></span><span>3位戦勝敗 <strong>4</strong></span><span>優勝国 <strong>5</strong></span><span>先制選手 <strong>3</strong></span></div>
         <div className="rank-list">{ranked.length===0?<div className="empty"><b>一番乗りしよう</b><p>予想を登録すると、ここにランキングが表示されます。</p></div>:ranked.map((p,i)=><article key={p.id} className={i<3?`top top-${i+1}`:""}>
           <div className="rank-head"><div className="place">{i+1}</div><div className="avatar">{p.name.slice(0,1)}</div><div className="person"><b>{p.name}</b><small>{i===0?"現在トップ":"エントリー済み"}</small></div><strong>{p.score}<small> pts</small></strong></div>
